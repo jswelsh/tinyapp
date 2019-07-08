@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/jswelsh/tinyapp/issues"
   },
-  "homepage": "https://github.com/jswelsh/tinyapp#readme"
+  "homepage": "https://github.com/jswelsh/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
