@@ -1,9 +1,11 @@
 const express = require("express");
+const cookieParser = require('cookie-parser')
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 function generateRandomString() {
   return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5);
@@ -47,14 +49,15 @@ app.get("/urls", (req, res) => {
 app.post("/urls/newmake", (req, res) => {
   const id = generateRandomString()
   urlDatabase[id] = req.body.longURL;
-/*   req.body[Object.keys(req.body)[0]];
-  urlDatabase[id] = req.body[Object.keys(req.body)[0]];
-  console.log(urlDatabase); */
   res.redirect(`/urls`);
 });
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new"); 
+  res.render('urls_new'); 
 });
+app.post("/login", (req, res) => {
+  console.log('Signed Cookies: ', req.signedCookies)
+  res.redirect('/urls');
+})
 app.post("/register", (req, res) => {
   console.log(req.body);
   console.log(req.body.email);
@@ -67,7 +70,7 @@ app.post("/register", (req, res) => {
   res.redirect('/urls');
 })
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  res.render('urls_register');
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
