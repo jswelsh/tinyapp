@@ -14,6 +14,12 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL.substring(1)];
+  console.log(longURL);
+  
+  res.redirect(longURL);
+});
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -21,20 +27,23 @@ app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
-app.post("/urls", (req, res) => {
-  var obj = { first: 'someVal' };
+app.post("/urls/newmake", (req, res) => {
+  const hold = generateRandomString()
   req.body[Object.keys(req.body)[0]];
-  urlDatabase[req.body[Object.keys(req.body)[0]]] = generateRandomString();
+  urlDatabase[hold] = req.body[Object.keys(req.body)[0]];
   console.log(urlDatabase);
-  res.redirect(`/urls/:${urlDatabase[req.body[Object.keys(req.body)[0]]]}`);
- //urlDatabase[req.body] = generateRandomString;
+  res.redirect(`/urls`);
 });
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
-app.get("/urls/:shortURL", (req, res) =>{
-  let templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
-  res.render("urls_show", templateVars);
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
+})
+app.post("/urls/:shortURL", (req, res) =>{
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase };
+  res.render(`urls_show`, templateVars);
 });
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
