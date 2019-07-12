@@ -12,17 +12,14 @@
   <body>
     <% include partials/_header %>
 
-    <form class="text-center border border-light p-5" style="width: 400px; margin: 0 auto" action="/register" method="POST">
-          <p class="h4 mb-4">Register</p>
+    <form class="text-center border border-light p-5" style="width: 400px; margin: 0 auto" action="/urls/login" method="POST">
+          <p class="h4 mb-4">Login</p>
       <!-- Email -->
       <input type="email" name="email" class="form-control mb-4" placeholder="Enter E-mail">
-      <%if (locals.error !== undefined) { %>
-        <div class="alert alert-danger" role="alert"><%= error %></div>
-      <% } %>
       <!-- Password -->
       <input type="password" name="password" class="form-control mb-4" placeholder="Enter Password">
       <!-- Sign in button -->
-      <button class="btn btn-info btn-block my-4" type="submit">Sign up</button>
+      <button class="btn btn-info btn-block my-4" type="submit">Sign in</button>
     </form>
 
 

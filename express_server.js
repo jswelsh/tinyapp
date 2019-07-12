@@ -33,16 +33,24 @@ const users = {
 }
 
 const emailCheck = function(actual) {
-  console.log(users);
+
   for (let elt of Object.keys(users)){
-  if (actual === users[elt]["email"]) {
-/*     console.log(elt);
-    console.log("exists"); */
-    return false;
-  } 
-  console.log("doesnt exist");
+  if (actual !== users[elt]["email"]) {
+  } else {
+      return false;
+  }
 }
 return true;
+}
+const passwordCheck = function(actualEmail, actualPassword) {
+
+  for (let elt of Object.keys(users)){
+  if (actualEmail === users[elt]["email"]) {
+    if (actualPassword === users[elt]["password"])
+    return true;
+  }
+}
+return false;
 }
 
 /* app.get("/u/:shortURL", (req, res) => {
@@ -82,16 +90,21 @@ app.post("/logout", (req, res) => {
 
   res.redirect('/urls');
 })
-app.get('/login', (req, res) => {
-  res.cookie('username', req.body["username"]);
-  res.render('/login');
+
+
+app.get("/urls/login", (req, res) => {
+  res.render('urls_login', req);
 })
+
+app.post("/urls/login", (req, res) => {
+/*   if(passwordCheck()){
+  res.cookie('username', req.body["username"]); */
+  res.render('urls_index');
+/*   } */
+})
+
 app.post("/register", (req, res) => {
   let templateVars;
-  //console.log(req.body);
-//console.log(req.body['email']);
-  //console.log(Object.keys(req.body))
-  //console.log(users);
   if(emailCheck(req.body['email'])){
   const id = generateRandomString()
   users[id] = { 
@@ -99,7 +112,6 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   }
- // console.log(users);
   res.cookie('username', id);
   res.redirect('/urls');
 } else {
@@ -109,15 +121,14 @@ app.post("/register", (req, res) => {
   res.render('urls_register', templateVars)
 }
 })
+
+
 app.get("/register", (req, res) => {
   res.render('urls_register');
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(urlDatabase);
-  console.log(req.params['shortURL']);
-  //let del = req.params['shortURL'];
+
   delete urlDatabase[req.params['shortURL']];
-  console.log(urlDatabase);
   res.redirect('/urls');
 })
 app.get("/urls/:shortURL", (req, res) =>{
@@ -128,12 +139,8 @@ app.get("/urls/:shortURL", (req, res) =>{
   };
   res.render(`urls_show`, templateVars);
 });
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
 app.get("*", (req, res) => {
   res.send("404");
 });
 app.listen(PORT, () => {
-//  console.log(`Example app listening on port ${PORT}!`);
 });
