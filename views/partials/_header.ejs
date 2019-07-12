@@ -11,10 +11,9 @@
       </div>
     </div>
       <div class="ml-auto">
-        <%if(username === undefined) { %>
-          <form class="form-inline" action="/login" method="POST">
-          <input class="form-control mr-sm-2" type="text" name="username" placeholder="Username" aria-label="Username">
-          <button class="btn btn-outline-secondary btn-md my-2 my-sm-0 ml-3" type="submit">Submit</button>
+        <%if(locals.username === undefined) { %>
+          <form class="nav-item" action="/register" method="GET">
+           <button class="btn btn-outline-secondary btn-md my-2 my-sm-0 ml-3" type="submit">Login</button>
           </form>
         <% } else { %>
           <form class="form-inline" action="/logout" method="POST">

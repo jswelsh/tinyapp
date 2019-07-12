@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(cookieParser());
+app.use(express.static('public'));
 
 function generateRandomString() {
   return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5);
@@ -29,9 +30,22 @@ const users = {
   }
 }
 
+const emailCheck = function(actual) {
+  console.log(Object.keys(users));
+  for (let elt of Object.keys(users)){
+  if (actual === users[elt]["email"]) {
+    console.log(elt);
+    console.log("exists");
+    return false;
+  } 
+  console.log("doesnt exist");
+}
+return true;
+}
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL.substring(1)];
-  console.log(longURL);
+//  console.log(longURL);
   
   res.redirect(longURL);
 });
@@ -60,36 +74,46 @@ app.get("/urls/new", (req, res) => {
   };
   res.render('urls_new', templateVars); 
 });
-app.post('/login', (req, res) => {
+/* app.post('/login', (req, res) => {
   res.cookie('username', req.body["username"]);
   res.redirect('/urls');
-})
+}) */
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
+
   res.redirect('/urls');
 })
 app.post("/register", (req, res) => {
-  console.log(req.body);
-  console.log(req.body.email);
+  let templateVars;
+  //console.log(req.body);
+//console.log(req.body['email']);
+  //console.log(Object.keys(req.body))
+  //console.log(users);
+  if(emailCheck(req.body['email'])){
   const id = generateRandomString()
   users[id] = { 
     id: id, 
     email: req.body.email,
     password: req.body.password
   }
+ // console.log(users);
+  res.cookie('username', id);
   res.redirect('/urls');
+} else {
+    templateVars = {
+    error: "User Credentials Already Exist!"
+  }
+  res.render('urls_register', templateVars)
+}
 })
 app.get("/register", (req, res) => {
-  let templateVars = {
-    username: req.cookies["username"],
-  };
-  res.render('urls_register', templateVars);
+  res.render('urls_register');
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 })
-app.post("/urls/:shortURL", (req, res) =>{
+app.get("/urls/:shortURL", (req, res) =>{
   let templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase,
@@ -104,5 +128,5 @@ app.get("*", (req, res) => {
   res.send("404");
 });
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+//  console.log(`Example app listening on port ${PORT}!`);
 });

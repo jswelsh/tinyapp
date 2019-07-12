@@ -16,6 +16,9 @@
           <p class="h4 mb-4">Login</p>
       <!-- Email -->
       <input type="email" name="email" class="form-control mb-4" placeholder="Enter E-mail">
+      <%if (locals.error !== undefined) { %>
+        <div class="alert alert-danger" role="alert"><%= error %></div>
+      <% } %>
       <!-- Password -->
       <input type="password" name="password" class="form-control mb-4" placeholder="Enter Password">
       <!-- Sign in button -->
