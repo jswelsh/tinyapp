@@ -7,7 +7,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(cookieParser());
 app.use(express.static('public'));
-
+// using this format of cat two seperate strings randomly generated ensures 6 digits, in the rare
+// chance that one of the strings generates one less digit (if used as one generater, can result in
+// 6 random char....with a rare chance of 5)
 function generateRandomString() {
   return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5);
 }
@@ -31,11 +33,11 @@ const users = {
 }
 
 const emailCheck = function(actual) {
-  console.log(Object.keys(users));
+  console.log(users);
   for (let elt of Object.keys(users)){
   if (actual === users[elt]["email"]) {
-    console.log(elt);
-    console.log("exists");
+/*     console.log(elt);
+    console.log("exists"); */
     return false;
   } 
   console.log("doesnt exist");
@@ -43,18 +45,18 @@ const emailCheck = function(actual) {
 return true;
 }
 
-app.get("/u/:shortURL", (req, res) => {
+/* app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL.substring(1)];
 //  console.log(longURL);
   
   res.redirect(longURL);
-});
-app.get("/", (req, res) => {
+}); */
+/* app.get("/", (req, res) => {
   res.send("Hello!");
 });
 app.post("/urls", (req, res) => {
   res.redirect('/urls');
-})
+}) */
 
 app.get("/urls", (req, res) => {
   let templateVars = { 
@@ -74,14 +76,15 @@ app.get("/urls/new", (req, res) => {
   };
   res.render('urls_new', templateVars); 
 });
-/* app.post('/login', (req, res) => {
-  res.cookie('username', req.body["username"]);
-  res.redirect('/urls');
-}) */
+
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
 
   res.redirect('/urls');
+})
+app.get('/login', (req, res) => {
+  res.cookie('username', req.body["username"]);
+  res.render('/login');
 })
 app.post("/register", (req, res) => {
   let templateVars;
@@ -110,7 +113,11 @@ app.get("/register", (req, res) => {
   res.render('urls_register');
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  console.log(urlDatabase);
+  console.log(req.params['shortURL']);
+  //let del = req.params['shortURL'];
+  delete urlDatabase[req.params['shortURL']];
+  console.log(urlDatabase);
   res.redirect('/urls');
 })
 app.get("/urls/:shortURL", (req, res) =>{
