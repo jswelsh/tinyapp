@@ -15,8 +15,6 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'Key2'],
 }));
-
-
 let urlDatabase = {};
 let users = {};
 
@@ -48,6 +46,33 @@ const emailCheck = function(actual) {
   return [false];
 };
 
+const urlCheck = function(actual) {
+  for (let elt in urlDatabase) {
+    if (urlDatabase[elt]['userID'] === actual) {
+        return true;
+    }
+    return false;
+}
+}
+
+const urlsForUser = function(id) {
+  let userURLs = { };
+  for (shortURL in urlDatabase){
+    if (urlDatabase[shortURL]['userID'] === id) {
+      userURLs[shortURL] = Object.assign(urlDatabase[shortURL])
+    }
+  }
+  return userURLs
+};
+
+const loginCheck = function(userID){
+  if(userID !== undefined){
+    return true;
+  }
+  return false;
+}
+
+
 const passwordCheck = function(actualEmail, actualPassword) {
   for (let elt of Object.keys(users)) {
     if (actualEmail === users[elt]["email"]) {
@@ -77,7 +102,8 @@ app.get("/", (req, res) => {
   } else {
     let templateVars = {
       username: req.session.username,
-      urls: urlDatabase[req.session.userID]
+      userID: req.session.userID,
+      error: undefined
     };
     res.render('urls_index', templateVars);
   }
@@ -111,7 +137,6 @@ app.post("/register", (req, res) => {
     urlDatabase[id] = {};
     templateVars = {
       user: users[id],
-      urls: urlDatabase[req.session.userID],
       error: undefined
     };
     req.session.username = req.body['email'];
@@ -154,25 +179,24 @@ app.post("/logout", (req, res) => {
     error: "User Logged Out!"
   };
   req.session = null
-/*   res.clearCookie('username');
-  res.clearCookie('userID'); */
   res.render('urls_login', templateVars); 
 });
 
 app.get("/urls", (req, res) => {
   let templateVars;
   if ((userIDCheck(req.session.userID))[0]) {
-    if (isEmpty(urlDatabase[req.session.userID])) {
+    //NEED TO CHECK IF THERES ANY URLS FOR USER
+    if (urlCheck(req.session.userID)){
+      let templateVars = {
+        username: req.session.username,
+        urls: urlsForUser()
+      };
+      res.render('urls_index', templateVars);
+    } else {
       templateVars = {
         error: "No URLs saved yet, create one!"
       };
       res.render("urls_new", templateVars);
-    } else {
-      let templateVars = {
-        username: req.session.username,
-        urls: urlDatabase[req.session.userID]
-      };
-      res.render('urls_index', templateVars);
     }
   } else {
     templateVars = {
@@ -195,7 +219,6 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls/newmake", (req, res) => {
   const id = generateRandomString();
-  const user = req.session.userID;
   let templateVars; 
   if (users[req.session.userID] === undefined) {
     templateVars = {
@@ -203,35 +226,67 @@ app.post("/urls/newmake", (req, res) => {
     };
     res.render('urls_login', templateVars);
   } else {
-    urlDatabase[user][id] = req.body.longURL;
+    urlDatabase[id] = {
+      longURL: req.body.longURL,
+      userID: req.session.userID
+    }
+    //////////////fixing urls linked in urls_index
     templateVars = {
       username: req.session.username,
-      urls: urlDatabase[user]
+      urls: urlsForUser(req.session.userID)
     };
     res.render('urls_index', templateVars);
   }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.session.userID][req.params.shortURL];
+  if (loginCheck(req.session.userID)){
+  delete urlDatabase[req.params.shortURL];
+  //MAY BE BROKEN
   res.redirect('/urls');
+  } else {
+    templateVars = {
+      error: "User not Logged in!"
+    };
+    res.render('urls_login', templateVars);
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) =>{
   let templateVars = {
     username: req.session.username,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.session.userID][req.params.shortURL]
   };
-  res.render(`urls_show`, templateVars);
+  if (loginCheck(req.session.username)){
+    res.render(`urls_show`, templateVars);
+  } else {
+    templateVars = {
+      error: "User not Logged in!"
+    };
+    res.render('urls_login', templateVars);
+  }
+});
+app.post("/urls/:shortURL", (req, res) =>{
+  let templateVars = {
+    username: req.session.username,
+  };
+  if (loginCheck(req.session.username)){
+    //maybe req.body
+    urlDatabase[req.params.shortURL]['longURL'] = req.body.newURL
+    res.render(`urls_show`, templateVars);
+  } else {
+    templateVars = {
+      error: "User not Logged in!"
+    };
+    res.render('urls_login', templateVars);
+  }
 });
 
-/* app.get("/u/:shortURL", (req, res) => {
+app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   console.log(longURL, "a");
   
   res.redirect(longURL);
-}); */
+}); // MAYBE BROKEN
 
 app.get("*", (req, res) => {
   res.send("404");
