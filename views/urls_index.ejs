@@ -11,7 +11,7 @@
      <title>TinyApp</title>
   </head>
   <body>
-    <%- include partials/_header.ejs %>
+    <% include partials/_header.ejs %>
    <main style="margin: 1em;">
      <h3>My URLs</h3>
      <table class="table">
@@ -27,7 +27,7 @@
           <% for(let url in urls) { %>
             <tr>
               <td><%= url %></td>
-              <td><%= urls[url] %></td>  
+              <td><%= urls[url]['longURL'] %></td>  
               <form method="GET" name="shortURL"  action= "/urls/<%= url %>">
                 <td><button type="submit" class="btn btn-success">Edit</button></td>
               </form>

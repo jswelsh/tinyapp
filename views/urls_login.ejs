@@ -18,8 +18,8 @@
       <input type="email" name="email" class="form-control mb-4" placeholder="Enter E-mail">
       <!-- Password -->
       <input type="password" name="password" class="form-control mb-4" placeholder="Enter Password">
-      <%if (locals.error !== undefined) { %>
-        <div class="alert alert-danger" role="alert"><%= error %></div>
+      <%if (locals !== undefined) { %>
+        <div class="alert alert-danger" role="alert"><%=  %></div>
       <% } %>
       <!-- Sign in button -->
       <button class="btn btn-info btn-block my-4" type="submit">Sign in</button>

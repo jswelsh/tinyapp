@@ -27,12 +27,12 @@ const  generateRandomString = function() {
 const userIDCheck = function(actual) {
   for (let elt of Object.keys(users)) {
     if (actual === elt) {
-      return [true, elt];
+      return true;
     } else {
-      return [false];
+      return false;
     }
   }
-  return [false];
+  return false;
 };
 
 const emailCheck = function(actual) {
@@ -62,8 +62,16 @@ const urlsForUser = function(id) {
       userURLs[shortURL] = Object.assign(urlDatabase[shortURL])
     }
   }
+  console.log(userURLs, 'userurls')
   return userURLs
 };
+const userByID = function (id) {
+  if(!id){
+    console.log("help")
+    return undefined
+  }
+  return users[id]
+}
 
 const loginCheck = function(userID){
   if(userID !== undefined){
@@ -96,38 +104,35 @@ const isEmpty = function(obj) {
 };
 
 app.get("/", (req, res) => {
-  let templateVars;
-  if (req.session.userID !== undefined) {
-    res.render('urls_login', templateVars);
-  } else {
-    let templateVars = {
-      username: req.session.username,
-      userID: req.session.userID,
-      error: undefined
-    };
-    res.render('urls_index', templateVars);
-  }
+  res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
-
+  let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  };
+  /*
   if ((userIDCheck(req.session.userID))[0]) {
-
-    res.render('urls_index');
-  } else {
-    res.render('urls_register');
-  }
+    res.render('urls_index', templateVars);
+  } else { */
+    res.render('urls_register', templateVars);
+ /*  } */
 });
 
 app.post("/register", (req, res) => {
-  let templateVars;
+/*   let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  }; */
   if (((emailCheck(req.body['email']))[0])) {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User Credentials Already Exist!"
-    };
+    };  
     res.render('urls_register', templateVars);
   } else {
-
     const id = generateRandomString();
     users = {[id]:{
       id: id,
@@ -135,32 +140,35 @@ app.post("/register", (req, res) => {
       password: bcrypt.hashSync(req.body.password, 10)
     }};
     urlDatabase[id] = {};
-    templateVars = {
-      user: users[id],
+/*     templateVars = {   
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: undefined
-    };
-    req.session.username = req.body['email'];
+    }; */
     req.session.userID = id;
-    //res.render('urls_new', templateVars)
     res.redirect('/urls/new');
   }
 });
 
 app.get("/login", (req, res) => {
-  let templateVars;
-  if (((userIDCheck(req.session.userID))[0])) {
-    templateVars = {
-      error: "User already Logged in"
-    };
+  let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  };
+  if (((userIDCheck(req.session.userID)))) {
+    templateVars.error = "User already Logged in"
     res.render('urls_index', templateVars);
   } else {
     res.render('urls_login', templateVars);
   }
 });
-
+//need to fix
 app.post("/login", (req, res) => {
   let loginAuthenticate = passwordCheck(req.body['email'], req.body['password']);
-  let templateVars;
+  let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  }
   if (loginAuthenticate[0] !== false) {
     req.session.username = req.body['email'];
     req.session.userID = loginAuthenticate[1];
@@ -168,6 +176,8 @@ app.post("/login", (req, res) => {
     res.redirect('/urls');
   } else {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User Credentials Incorrect!"
     };
     res.render('urls_login', templateVars);
@@ -175,77 +185,107 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  let templateVars = {
-    error: "User Logged Out!"
-  };
-  req.session = null
+  req.session = undefined
+  let templateVars = {};
+
+  console.log(templateVars.user)
   res.render('urls_login', templateVars); 
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars;
-  if ((userIDCheck(req.session.userID))[0]) {
+/*   let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  } */
+/*   res.render('urls_index', templateVars) */
+  if ((userIDCheck(req.session.userID))) {
     //NEED TO CHECK IF THERES ANY URLS FOR USER
     if (urlCheck(req.session.userID)){
-      let templateVars = {
-        username: req.session.username,
-        urls: urlsForUser()
-      };
       res.render('urls_index', templateVars);
     } else {
       templateVars = {
+        user: userByID(req.session.userID),
+        urls: urlsForUser(req.session.userID),
         error: "No URLs saved yet, create one!"
       };
       res.render("urls_new", templateVars);
     }
   } else {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User not Logged in!"
     };
     res.render('urls_login', templateVars);
   }
 });
 
-app.post("/urls", (req, res) => {
+/* app.post("/urls", (req, res) => {
   res.redirect('/urls');
 }); // do i need this?
-
+ */
 app.get("/urls/new", (req, res) => {
+  if (req.session.userID){
   let templateVars = {
-    username: req.session.username,
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
   };
   res.render('urls_new', templateVars);
+} else {
+  /*   
+     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
+      error: "User not Logged in!"
+    };
+    res.render('urls_login', templateVars);  */
+}
 });
 
 app.post("/urls/newmake", (req, res) => {
   const id = generateRandomString();
-  let templateVars; 
+/*   let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  }  */
   if (users[req.session.userID] === undefined) {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User not Logged in!"
     };
     res.render('urls_login', templateVars);
   } else {
+ /*    console.log(req.body) */
     urlDatabase[id] = {
       longURL: req.body.longURL,
       userID: req.session.userID
     }
     //////////////fixing urls linked in urls_index
+    console.log(urlsForUser(req.session.userID))
     templateVars = {
-      username: req.session.username,
+      user: userByID(req.session.userID),
       urls: urlsForUser(req.session.userID)
     };
     res.render('urls_index', templateVars);
+/*     res.redirect('/urls'); */
   }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (loginCheck(req.session.userID)){
   delete urlDatabase[req.params.shortURL];
+/*   templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  };
   //MAY BE BROKEN
-  res.redirect('/urls');
+  res.render('urls_index', templateVars); */
+  res.redirect("/urls")
   } else {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User not Logged in!"
     };
     res.render('urls_login', templateVars);
@@ -254,27 +294,42 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) =>{
   let templateVars = {
-    username: req.session.username,
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID),
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL]['longURL']
   };
-  if (loginCheck(req.session.username)){
+  if (loginCheck(req.session.userID)){
     res.render(`urls_show`, templateVars);
   } else {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User not Logged in!"
     };
     res.render('urls_login', templateVars);
   }
 });
 app.post("/urls/:shortURL", (req, res) =>{
-  let templateVars = {
-    username: req.session.username,
-  };
-  if (loginCheck(req.session.username)){
+/*   let templateVars = {
+    user: userByID(req.session.userID),
+    urls: urlsForUser(req.session.userID)
+  }
+  console.log(req.body) */
+  if (loginCheck(req.session.userID)){
     //maybe req.body
-    urlDatabase[req.params.shortURL]['longURL'] = req.body.newURL
-    res.render(`urls_show`, templateVars);
+    urlDatabase[req.params.shortURL]['longURL'] = req.body.newURL;
+/*     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID)
+    }
+    */
+    res.render('urls_index', templateVars); 
+/*     res.redirect('/urls'); */
   } else {
     templateVars = {
+      user: userByID(req.session.userID),
+      urls: urlsForUser(req.session.userID),
       error: "User not Logged in!"
     };
     res.render('urls_login', templateVars);
@@ -284,7 +339,6 @@ app.post("/urls/:shortURL", (req, res) =>{
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   console.log(longURL, "a");
-  
   res.redirect(longURL);
 }); // MAYBE BROKEN
 

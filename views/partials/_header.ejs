@@ -4,7 +4,7 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <%if(locals.username !== undefined) { %>
+    <%if(locals.user !== undefined) { %>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav" action="/register" method="GET">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
@@ -14,7 +14,7 @@
     </div>
 
       <div class="ml-auto">
-        <%if(locals.username === undefined) { %>
+        <% if(locals.user === undefined) { %>
           <form class="nav-item" action="/register" method="GET">
            <button class="btn btn-outline-secondary btn-md my-2 my-sm-0 ml-3" type="submit">Register</button>
           </form>
@@ -23,7 +23,7 @@
            </form>
         <% } else { %>
           <form class="form-inline" action="/logout" method="POST">
-            <a class="navbar-brand navbar-darks"><%= username %></a>
+            <a class="navbar-brand navbar-darks"><%= user.email %></a>
             <button class="btn btn-outline-secondary btn-md my-2 my-sm-0 ml-3" type="submit">Logout</button>
           </form>
         <% } %>
