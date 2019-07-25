@@ -38,12 +38,12 @@ const userIDCheck = function(actual) {
 const emailCheck = function(actual) {
   for (let elt of Object.keys(users)) {
     if (actual === users[elt]['email']) {
-      return [true, elt];
+      return true;
     } else {
-      return [false];
+      return false;
     }
   }
-  return [false];
+  return false;
 };
 
 const urlCheck = function(actual) {
@@ -51,8 +51,8 @@ const urlCheck = function(actual) {
     if (urlDatabase[elt]['userID'] === actual) {
         return true;
     }
-    return false;
 }
+return false;
 }
 
 const urlsForUser = function(id) {
@@ -62,17 +62,23 @@ const urlsForUser = function(id) {
       userURLs[shortURL] = Object.assign(urlDatabase[shortURL])
     }
   }
-  console.log(userURLs, 'userurls')
   return userURLs
 };
 const userByID = function (id) {
-  if(!id){
-    console.log("help")
-    return undefined
+  if(id){
+    return users[id]
   }
-  return users[id]
+  return undefined
 }
-
+const userByEmail = function (email) {
+  console.log(email, "email in userby email")
+  for (elt in users){
+    console.log(elt)
+    if (users[elt]['email'] === email){
+      return users[elt];
+    }
+  }
+}
 const loginCheck = function(userID){
   if(userID !== undefined){
     return true;
@@ -84,13 +90,12 @@ const loginCheck = function(userID){
 const passwordCheck = function(actualEmail, actualPassword) {
   for (let elt of Object.keys(users)) {
     if (actualEmail === users[elt]["email"]) {
-      if (bcrypt.compareSync(actualPassword, users[elt].password)) {
-        ;
-        return [true, elt];
+      if (bcrypt.compareSync(actualPassword, users[elt]['password'])) {
+        return true;
       }
     }
   }
-  return [false];
+  return false;
 };
 
 const isEmpty = function(obj) {
@@ -125,7 +130,7 @@ app.post("/register", (req, res) => {
     user: userByID(req.session.userID),
     urls: urlsForUser(req.session.userID)
   }; */
-  if (((emailCheck(req.body['email']))[0])) {
+  if (emailCheck(req.body['email'])) {
     templateVars = {
       user: userByID(req.session.userID),
       urls: urlsForUser(req.session.userID),
@@ -164,18 +169,17 @@ app.get("/login", (req, res) => {
 });
 //need to fix
 app.post("/login", (req, res) => {
-  let loginAuthenticate = passwordCheck(req.body['email'], req.body['password']);
-  let templateVars = {
-    user: userByID(req.session.userID),
-    urls: urlsForUser(req.session.userID)
-  }
-  if (loginAuthenticate[0] !== false) {
-    req.session.username = req.body['email'];
-    req.session.userID = loginAuthenticate[1];
- 
+  console.log(req.body['email'],req.body['password'])
+  console.log(passwordCheck(req.body['email'], req.body['password']))
+  if (passwordCheck(req.body['email'], req.body['password'])) {
+    let user = userByEmail(req.body['email']);
+    console.log(user)
+    console.log(user['id'], "gi")
+    req.session.userID = user['id'];
+    
     res.redirect('/urls');
   } else {
-    templateVars = {
+    let templateVars = {
       user: userByID(req.session.userID),
       urls: urlsForUser(req.session.userID),
       error: "User Credentials Incorrect!"
@@ -187,16 +191,14 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   req.session = undefined
   let templateVars = {};
-
-  console.log(templateVars.user)
   res.render('urls_login', templateVars); 
 });
 
 app.get("/urls", (req, res) => {
-/*   let templateVars = {
+  let templateVars = {
     user: userByID(req.session.userID),
     urls: urlsForUser(req.session.userID)
-  } */
+  }
 /*   res.render('urls_index', templateVars) */
   if ((userIDCheck(req.session.userID))) {
     //NEED TO CHECK IF THERES ANY URLS FOR USER
@@ -262,13 +264,13 @@ app.post("/urls/newmake", (req, res) => {
       userID: req.session.userID
     }
     //////////////fixing urls linked in urls_index
-    console.log(urlsForUser(req.session.userID))
+/*     console.log(urlsForUser(req.session.userID))
     templateVars = {
       user: userByID(req.session.userID),
       urls: urlsForUser(req.session.userID)
-    };
-    res.render('urls_index', templateVars);
-/*     res.redirect('/urls'); */
+    }; */
+/*     res.render('urls_index', templateVars); */
+    res.redirect(`/urls/${id}`);
   }
 });
 
@@ -324,8 +326,8 @@ app.post("/urls/:shortURL", (req, res) =>{
       urls: urlsForUser(req.session.userID)
     }
     */
-    res.render('urls_index', templateVars); 
-/*     res.redirect('/urls'); */
+/*     res.render('urls_index', templateVars);  */
+    res.redirect('/urls');
   } else {
     templateVars = {
       user: userByID(req.session.userID),
@@ -337,8 +339,9 @@ app.post("/urls/:shortURL", (req, res) =>{
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  console.log(longURL, "a");
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL]['longURL']
+  console.log(longURL);
   res.redirect(longURL);
 }); // MAYBE BROKEN
 
