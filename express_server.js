@@ -40,13 +40,16 @@ const passwordCheck = function(actualEmail, actualPassword) {
     }
   }
 };
-
+// registeration route
 app.post('/register', (req, res) => {
+  //making sure fields aren't empty, prompt for proper input
   if ((isEmpty(req.body.email)) || (isEmpty(req.body.password))) {
     templateVars.error = 'Invalid input, populate fields';
+    //ensure user doesn't already have an account
   } else if (emailCheck(req.body['email'], users)) {
     templateVars.error = 'Invalid email. Email already exists'
   } else {
+    //setting user with new credentials as well as a clean url obj
     const id = generateRandomString();
     users[id] = {
       id: id,
@@ -60,13 +63,16 @@ app.post('/register', (req, res) => {
 
   res.render('urls_register', templateVars)
 });
-
+//login route
 app.post('/login', (req, res) => {
   let templateVars = {};
+  //making sure fields aren't empty, prompt for proper input
   if ((isEmpty(req.body.email)) || (isEmpty(req.body.password))) {
     templateVars.error = 'Invalid input, populate fields';
+    //ensure users email exists
   } else if (!emailCheck(req.body['email'], users)) {
     templateVars.error = 'Invalid email';
+    //authenticate login credentials
   } else if (passwordCheck(req.body['email'], req.body['password'])) {
     let user = userByEmail(req.body['email'], users);
     req.session.userID = user['id'];
@@ -76,14 +82,17 @@ app.post('/login', (req, res) => {
   }
   res.render('urls_login', templateVars);
 });
-
+//logs user out route
 app.post('/logout', (req, res) => {
+  //clearing cookies, functionality can break
+  //if these aren't cleared
   req.session = undefined;
   res.redirect('/urls');
 });
-
+//creates a new url shortener obj
 app.post('/urls/newmake', (req, res) => {
   const id = generateRandomString();
+  //making sure user is logged in, else redirect
   if (users[req.session.userID] === undefined) {
     let templateVars = {
       user: userByID(req.session.userID, users),
@@ -99,12 +108,14 @@ app.post('/urls/newmake', (req, res) => {
     res.redirect(`/urls/${id}`);
   }
 });
-
+//short url obj deletion route for user
 app.post('/urls/:shortURL/delete', (req, res) => {
+  //check if user is actually logged in, else redirect
   if (loginCheck(req.session.userID)) {
     delete urlDatabase[req.params.shortURL];
     res.redirect('/urls');
   } else {
+    //user gets redirected 
     let templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
@@ -113,12 +124,15 @@ app.post('/urls/:shortURL/delete', (req, res) => {
     res.render('urls_login', templateVars);
   }
 });
-
+//updates longURL for unique short url route
 app.post('/urls/:shortURL', (req, res) =>{
+  //ensures user is logged in else redirects to login
   if (loginCheck(req.session.userID)) {
+    //keeps the unique id for the new longURL
     urlDatabase[req.params.shortURL]['longURL'] = req.body.newURL;
     res.redirect('/urls');
   } else {
+    //user gets redirected
     let templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
@@ -127,12 +141,13 @@ app.post('/urls/:shortURL', (req, res) =>{
     res.render('urls_login', templateVars);
   }
 });
-
+//redirect
 app.get('/', (req, res) => {
   res.redirect('/urls');
 });
-
+//registeration page route
 app.get('/register', (req, res) => {
+  //check if user is logged in, redirect if they are
   if (loginCheck(req.session.userID)) {
     templateVars = {
     error: 'User logged in!',
@@ -147,12 +162,13 @@ app.get('/register', (req, res) => {
     };
   res.render('urls_register', templateVars);
 });
-
+//login page route
 app.get('/login', (req, res) => {
   let templateVars = {
     user: userByID(req.session.userID, users),
     urls: urlsForUser(req.session.userID, urlDatabase)
   };
+  //check if user is logged in, redirect if they are
   if (((userIDCheck(req.session.userID, users)))) {
     templateVars.error = 'User already Logged in';
     res.render('urls_index', templateVars);
@@ -160,16 +176,20 @@ app.get('/login', (req, res) => {
     res.render('urls_login', templateVars);
   }
 });
-
+//users urls page route
 app.get('/urls', (req, res) => {
   let templateVars = {
     user: userByID(req.session.userID, users),
     urls: urlsForUser(req.session.userID, urlDatabase)
   };
+  //check if user is logged in, redirect if they aren't
   if ((userIDCheck(req.session.userID, users))) {
+    //check if they have any URLs in their assigned obj,
+    //redirect to create new short url page if they dont
     if (urlCheck(req.session.userID, urlDatabase)) {
       res.render('urls_index', templateVars);
     } else {
+      //redirected to create new url
       templateVars = {
         user: userByID(req.session.userID, users),
         urls: urlsForUser(req.session.userID, urlDatabase),
@@ -178,6 +198,7 @@ app.get('/urls', (req, res) => {
       res.render('urls_new', templateVars);
     }
   } else {
+    //redirected to login page
     templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
@@ -186,7 +207,7 @@ app.get('/urls', (req, res) => {
     res.render('urls_login', templateVars);
   }
 });
-
+//create new short url route
 app.get('/urls/new', (req, res) => {
   if (req.session.userID) {
     let templateVars = {
@@ -196,9 +217,9 @@ app.get('/urls/new', (req, res) => {
     res.render('urls_new', templateVars);
   }
 });
-
+//show unique short url and its edit page route
 app.get('/urls/:shortURL', (req, res) =>{
-
+  //check if URL even exists is the database
   if (doesUrlExistAndOwned(req.params.shortURL,req.session.userID, urlDatabase)){
   let templateVars = {
     user: userByID(req.session.userID, users),
@@ -206,9 +227,11 @@ app.get('/urls/:shortURL', (req, res) =>{
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]['longURL']
   };
+  //check if the user is logged in, redirect if they arent
   if (loginCheck(req.session.userID)) {
     res.render('urls_show', templateVars);
   } else {
+    //redirected to login page
     templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
@@ -216,13 +239,15 @@ app.get('/urls/:shortURL', (req, res) =>{
     };
     res.render('urls_login', templateVars);
   }
-}
-res.status(404).send(' <h2>Error:</h2> <p>Address either doesn't exist or isn't owned by you.</p>');
-
-});
-
+  }
+  //redirect to create new url page as the url provided isn't owned/doesn't exist
+  templateVars.error = `Address either doesn't exist or isn't owned by you!`;
+  res.render('urls_new', templateVars
+)});
+//redirect to longURL using shortURL,
+//regardless if url is owned by user
 app.get('/u/:shortURL', (req, res) => {
-
+  //setting the longURL for redirect
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL]['longURL'];
   res.redirect(longURL);
