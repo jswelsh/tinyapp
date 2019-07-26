@@ -23,6 +23,7 @@ module.exports = {
       }
     }
   },
+  //checks if password matches stored credentials
   passwordCheck: function(actualEmail, actualPassword, users) {
     for (let elt in users) {
       if (actualEmail === users[elt]['email']) {
