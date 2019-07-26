@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 
 const app = express();
 const PORT = 8080; // default port 8080
-const bodyParser = require("body-parser");
+const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const dataHelpers = require("./helpers.js");
+const dataHelpers = require('./helpers.js');
 
 const userByEmail = dataHelpers.userByEmail;
 const generateRandomString = dataHelpers.generateRandomString;
@@ -20,7 +20,7 @@ const loginCheck = dataHelpers.loginCheck;
 const isEmpty = dataHelpers.isEmpty;
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(express.static('public'));
 app.use(cookieSession({
@@ -33,7 +33,7 @@ let users = {};
 
 const passwordCheck = function(actualEmail, actualPassword) {
   for (let elt in users) {
-    if (actualEmail === users[elt]["email"]) {
+    if (actualEmail === users[elt]['email']) {
       if (bcrypt.compareSync(actualPassword, users[elt]['password'])) {
         return true;
       }
@@ -41,11 +41,11 @@ const passwordCheck = function(actualEmail, actualPassword) {
   }
 };
 
-app.post("/register", (req, res) => {
+app.post('/register', (req, res) => {
   if ((isEmpty(req.body.email)) || (isEmpty(req.body.password))) {
-    templateVars.error = "Invalid input, populate fields";
+    templateVars.error = 'Invalid input, populate fields';
   } else if (emailCheck(req.body['email'], users)) {
-    templateVars.error = "Invalid email. Email already exists"
+    templateVars.error = 'Invalid email. Email already exists'
   } else {
     const id = generateRandomString();
     users[id] = {
@@ -61,34 +61,34 @@ app.post("/register", (req, res) => {
   res.render('urls_register', templateVars)
 });
 
-app.post("/login", (req, res) => {
+app.post('/login', (req, res) => {
   let templateVars = {};
   if ((isEmpty(req.body.email)) || (isEmpty(req.body.password))) {
-    templateVars.error = "Invalid input, populate fields";
+    templateVars.error = 'Invalid input, populate fields';
   } else if (!emailCheck(req.body['email'], users)) {
-    templateVars.error = "Invalid email";
+    templateVars.error = 'Invalid email';
   } else if (passwordCheck(req.body['email'], req.body['password'])) {
     let user = userByEmail(req.body['email'], users);
     req.session.userID = user['id'];
     res.redirect('/urls');
   } else {
-    templateVars.error = "Invalid password"
+    templateVars.error = 'Invalid password'
   }
   res.render('urls_login', templateVars);
 });
 
-app.post("/logout", (req, res) => {
+app.post('/logout', (req, res) => {
   req.session = undefined;
   res.redirect('/urls');
 });
 
-app.post("/urls/newmake", (req, res) => {
+app.post('/urls/newmake', (req, res) => {
   const id = generateRandomString();
   if (users[req.session.userID] === undefined) {
     let templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
-      error: "User not Logged in!"
+      error: 'User not Logged in!'
     };
     res.render('urls_login', templateVars);
   } else {
@@ -100,21 +100,21 @@ app.post("/urls/newmake", (req, res) => {
   }
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.post('/urls/:shortURL/delete', (req, res) => {
   if (loginCheck(req.session.userID)) {
     delete urlDatabase[req.params.shortURL];
-    res.redirect("/urls");
+    res.redirect('/urls');
   } else {
     let templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
-      error: "User not Logged in!"
+      error: 'User not Logged in!'
     };
     res.render('urls_login', templateVars);
   }
 });
 
-app.post("/urls/:shortURL", (req, res) =>{
+app.post('/urls/:shortURL', (req, res) =>{
   if (loginCheck(req.session.userID)) {
     urlDatabase[req.params.shortURL]['longURL'] = req.body.newURL;
     res.redirect('/urls');
@@ -122,20 +122,20 @@ app.post("/urls/:shortURL", (req, res) =>{
     let templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
-      error: "User not Logged in!"
+      error: 'User not Logged in!'
     };
     res.render('urls_login', templateVars);
   }
 });
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
   if (loginCheck(req.session.userID)) {
     templateVars = {
-    error: "User logged in!",
+    error: 'User logged in!',
     user: userByID(req.session.userID, users),
     urls: urlsForUser(req.session.userID, urlDatabase)
     }
@@ -148,20 +148,20 @@ app.get('/register', (req, res) => {
   res.render('urls_register', templateVars);
 });
 
-app.get("/login", (req, res) => {
+app.get('/login', (req, res) => {
   let templateVars = {
     user: userByID(req.session.userID, users),
     urls: urlsForUser(req.session.userID, urlDatabase)
   };
   if (((userIDCheck(req.session.userID, users)))) {
-    templateVars.error = "User already Logged in";
+    templateVars.error = 'User already Logged in';
     res.render('urls_index', templateVars);
   } else {
     res.render('urls_login', templateVars);
   }
 });
 
-app.get("/urls", (req, res) => {
+app.get('/urls', (req, res) => {
   let templateVars = {
     user: userByID(req.session.userID, users),
     urls: urlsForUser(req.session.userID, urlDatabase)
@@ -173,21 +173,21 @@ app.get("/urls", (req, res) => {
       templateVars = {
         user: userByID(req.session.userID, users),
         urls: urlsForUser(req.session.userID, urlDatabase),
-        error: "No URLs saved yet, create one!"
+        error: 'No URLs saved yet, create one!'
       };
-      res.render("urls_new", templateVars);
+      res.render('urls_new', templateVars);
     }
   } else {
     templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
-      error: "User not Logged in!"
+      error: 'User not Logged in!'
     };
     res.render('urls_login', templateVars);
   }
 });
 
-app.get("/urls/new", (req, res) => {
+app.get('/urls/new', (req, res) => {
   if (req.session.userID) {
     let templateVars = {
       user: userByID(req.session.userID, users),
@@ -197,7 +197,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-app.get("/urls/:shortURL", (req, res) =>{
+app.get('/urls/:shortURL', (req, res) =>{
 
   if (doesUrlExistAndOwned(req.params.shortURL,req.session.userID, urlDatabase)){
   let templateVars = {
@@ -207,29 +207,29 @@ app.get("/urls/:shortURL", (req, res) =>{
     longURL: urlDatabase[req.params.shortURL]['longURL']
   };
   if (loginCheck(req.session.userID)) {
-    res.render(`urls_show`, templateVars);
+    res.render('urls_show', templateVars);
   } else {
     templateVars = {
       user: userByID(req.session.userID, users),
       urls: urlsForUser(req.session.userID, urlDatabase),
-      error: "User not Logged in!"
+      error: 'User not Logged in!'
     };
     res.render('urls_login', templateVars);
   }
 }
-res.status(404).send(" <h2>Error:</h2> <p>Address either doesn't exist or isn't owned by you.</p>");
+res.status(404).send(' <h2>Error:</h2> <p>Address either doesn't exist or isn't owned by you.</p>');
 
 });
 
-app.get("/u/:shortURL", (req, res) => {
+app.get('/u/:shortURL', (req, res) => {
 
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL]['longURL'];
   res.redirect(longURL);
 });
 
-app.get("*", (req, res) => {
-  res.send("404");
+app.get('*', (req, res) => {
+  res.send('404');
 });
 
 app.listen(PORT, () => {
