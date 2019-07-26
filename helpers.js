@@ -1,5 +1,6 @@
 
 module.exports = {
+  //returns user info using email
   userByEmail: function(email, users) {
     for (let elt in users) {
       if (users[elt]['email'] === email) {
@@ -13,7 +14,7 @@ module.exports = {
   generateRandomString: function() {
     return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5);
   },
-
+  //check if user is logged in to be redirected if they are
   userIDCheck: function(actual, users) {
     for (let elt in users) {
       if (actual === elt) {
@@ -21,7 +22,7 @@ module.exports = {
       }
     }
   },
-
+  //checking if email exists for redirection or login authentication
   emailCheck: function(actual, users) {
     for (let elt in users) {
       if (actual === users[elt]['email']) {
@@ -29,7 +30,7 @@ module.exports = {
       }
     }
   },
-
+  //check if url exists in database
   urlCheck: function(actual, urlDatabase) {
     for (let elt in urlDatabase) {
       if (urlDatabase[elt]['userID'] === actual) {
@@ -37,6 +38,7 @@ module.exports = {
       }
     }
   },
+  //checking if the url exist...this also checks if it's owned by a user
   doesUrlExistAndOwned: function(actual, userID, urlDatabase) {
     for (let elt in urlDatabase) {
       if (elt === actual) {
@@ -46,7 +48,7 @@ module.exports = {
       }
     }
   },
-
+  //returns all the urls owned by user
   urlsForUser: function(id, urlDatabase) {
     let userURLs = { };
     for (let shortURL in urlDatabase) {
@@ -56,19 +58,19 @@ module.exports = {
     }
     return userURLs;
   },
-
+  // returns user info using their id
   userByID: function(id, users) {
     if (id) {
       return users[id];
     }
   },
-
+  //checks if a user is currently logged in, used for redirection
   loginCheck: function(userID) {
     if (userID !== undefined) {
       return true;
     }
   },
-
+  //checks if and obj is empty
   isEmpty: function(obj) {
     if ((obj === undefined) || (obj === null)) {
       return true;
