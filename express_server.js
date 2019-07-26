@@ -5,12 +5,13 @@ const cookieSession = require('cookie-session');
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');
 const dataHelpers = require('./helpers.js');
 
 const userByEmail = dataHelpers.userByEmail;
 const generateRandomString = dataHelpers.generateRandomString;
 const userIDCheck = dataHelpers.userIDCheck;
+const passwordCheck = dataHelpers.passwordCheck;
+const createNewUser = dataHelpers.createNewUser;
 const emailCheck = dataHelpers.emailCheck;
 const urlCheck = dataHelpers.urlCheck;
 const doesUrlExistAndOwned = dataHelpers.doesUrlExistAndOwned;
@@ -31,15 +32,6 @@ app.use(cookieSession({
 let urlDatabase = {};
 let users = {};
 
-const passwordCheck = function(actualEmail, actualPassword) {
-  for (let elt in users) {
-    if (actualEmail === users[elt]['email']) {
-      if (bcrypt.compareSync(actualPassword, users[elt]['password'])) {
-        return true;
-      }
-    }
-  }
-};
 // registeration route
 app.post('/register', (req, res) => {
   //making sure fields aren't empty, prompt for proper input
@@ -51,11 +43,7 @@ app.post('/register', (req, res) => {
   } else {
     //setting user with new credentials as well as a clean url obj
     const id = generateRandomString();
-    users[id] = {
-      id: id,
-      email: req.body.email,
-      password: bcrypt.hashSync(req.body.password, 10)
-    };
+    users[id] = createNewUser(id, req.body.email, req.body.password)
     urlDatabase[id] = {};
     req.session.userID = id;
     res.redirect('/urls/new');
@@ -73,7 +61,7 @@ app.post('/login', (req, res) => {
   } else if (!emailCheck(req.body['email'], users)) {
     templateVars.error = 'Invalid email';
     //authenticate login credentials
-  } else if (passwordCheck(req.body['email'], req.body['password'])) {
+  } else if (passwordCheck(req.body['email'], req.body['password'], users)) {
     let user = userByEmail(req.body['email'], users);
     req.session.userID = user['id'];
     res.redirect('/urls');

@@ -1,5 +1,6 @@
-
+const bcrypt = require('bcrypt');
 module.exports = {
+  
   //returns user info using email
   userByEmail: function(email, users) {
     for (let elt in users) {
@@ -21,6 +22,23 @@ module.exports = {
         return true;
       }
     }
+  },
+  passwordCheck: function(actualEmail, actualPassword, users) {
+    for (let elt in users) {
+      if (actualEmail === users[elt]['email']) {
+        if (bcrypt.compareSync(actualPassword, users[elt]['password'])) {
+          return true;
+        }
+      }
+    }
+  },
+  //create  new user obj
+  createNewUser: function(id, email, password){
+    return {
+      'id': id,
+      'email': email,
+      'password': bcrypt.hashSync(password, 10)
+    };
   },
   //checking if email exists for redirection or login authentication
   emailCheck: function(actual, users) {
