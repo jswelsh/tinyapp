@@ -40,7 +40,7 @@ module.exports = {
   doesUrlExistAndOwned: function(actual, userID, urlDatabase) {
     for (let elt in urlDatabase) {
       if (elt === actual) {
-        if(urlDatabase[elt]["userID"] === userID){
+        if(urlDatabase[elt]['userID'] === userID){
           return true;
         }
       }
