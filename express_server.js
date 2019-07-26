@@ -28,6 +28,9 @@ app.use(cookieSession({
   keys: ['key1', 'Key2'],
 }));
 
+let urlDatabase = {};
+let users = {};
+
 const passwordCheck = function(actualEmail, actualPassword) {
   for (let elt in users) {
     if (actualEmail === users[elt]["email"]) {
@@ -45,11 +48,11 @@ app.post("/register", (req, res) => {
     templateVars.error = "Invalid email. Email already exists"
   } else {
     const id = generateRandomString();
-    users = {[id]:{
+    users[id] = {
       id: id,
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 10)
-    }};
+    };
     urlDatabase[id] = {};
     req.session.userID = id;
     res.redirect('/urls/new');
@@ -124,9 +127,6 @@ app.post("/urls/:shortURL", (req, res) =>{
     res.render('urls_login', templateVars);
   }
 });
-
-let urlDatabase = {};
-let users = {};
 
 app.get("/", (req, res) => {
   res.redirect('/urls');
