@@ -89,7 +89,7 @@ module.exports = {
       return true;
     }
   },
-  //checks if and obj is empty
+  //checks if an obj is empty
   isEmpty: function(obj) {
     if ((obj === undefined) || (obj === null)) {
       return true;
