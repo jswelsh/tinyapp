@@ -137,6 +137,7 @@ app.get('/', (req, res) => {
 app.get('/register', (req, res) => {
   //check if user is logged in, redirect if they are
   if (loginCheck(req.session.userID)) {
+    console.log(req.session.userID)
     templateVars = {
     error: 'User logged in!',
     user: userByID(req.session.userID, users),
